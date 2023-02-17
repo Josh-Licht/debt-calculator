@@ -6,8 +6,8 @@ class Result extends React.Component {
     const {title, value} = this.props
 
     return (
-      <div className="results">
-        <h4>{title}</h4>
+      <div className="info-item">
+        <h2>{title}</h2>
         <p>{value}</p>
       </div>
     )
