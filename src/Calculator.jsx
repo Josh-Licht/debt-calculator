@@ -49,23 +49,37 @@ class Calculator extends React.Component {
 
   handlePayment = (e) => {
     e.preventDefault();
-    const { totalDebt, payment, payments, interest, principal, minimumPayment, interestRate, totalPayments } = this.state
+    const { totalDebt, payment, payments, interest, minimumPayment, interestRate, totalPayments } = this.state
     const date = this.getDate()
 
     let newRemainingDebt = totalDebt;
-    let newInterest = interest;
-    let newPrinciple;
-    let newMinPayment;
+    let newInterest = (newRemainingDebt * (interestRate / 100)) / 12;
+    let newPrinciple = newRemainingDebt * 0.01;
+    let newMinPayment = newInterest + newPrinciple;
     let newPayments = payments;
     let newTotalPayment = totalPayments;
     let maxPayment = newRemainingDebt + newInterest
 
-    newRemainingDebt -= payment
+    // overpayment 
+    if (payment > minimumPayment) { newPrinciple = payment - newInterest }
+
+    newRemainingDebt -= newPrinciple.toFixed(2)
+
+    // get initial interest and principle
     newInterest = (newRemainingDebt * (interestRate / 100)) / 12;
-    newPrinciple = newRemainingDebt * 0.01
-    newMinPayment = newRemainingDebt <= 100 ? newRemainingDebt + newPrinciple : newInterest + newPrinciple
-    newPayments = [...payments, {date, payment, interest, principal}]
+    newMinPayment = newInterest + (newRemainingDebt * 0.01)
+
+    // update payments table
     newTotalPayment += payment
+    newPayments = [...payments, {
+      date, payment, interest, 
+      principal : newPrinciple.toFixed(2), balance : newRemainingDebt.toFixed(2)
+    }]
+
+    // handles min payment
+    if (newRemainingDebt <= 100) {
+      newMinPayment = newRemainingDebt + newPrinciple
+    }
 
     // prevents a payment without an debt
     if (totalDebt <= 0){ return }
@@ -91,7 +105,7 @@ class Calculator extends React.Component {
     this.setState({ 
       totalDebt: Number(newRemainingDebt.toFixed(2)),
       interest: Number(newInterest.toFixed(2)),
-      principal: Number(newPrinciple.toFixed(2)),
+      principal: Number((newRemainingDebt * 0.01).toFixed(2)),
       minimumPayment: Number(newMinPayment.toFixed(2)),
       totalPayments: Number(parseFloat(newTotalPayment).toFixed(2)),
       payments: newPayments,
@@ -101,17 +115,18 @@ class Calculator extends React.Component {
 
   handlePaymentMax = (e) => {
     e.preventDefault()
-    const { totalDebt, payments, principal, interest, totalPayments } = this.state
+    const { totalDebt, payments, interest, totalPayments } = this.state
     const date = this.getDate()
 
     let newPayments = payments;
     let newTotalPayment = totalPayments;
     let payment = totalDebt + interest
+    let newPrinciple =  payment - interest
 
     // prevents clear debt without an debt
     if (totalDebt <= 0){ return }
 
-    newPayments = [...payments, {date, payment, interest, principal}]
+    newPayments = [...payments, {date, payment: payment.toFixed(2), interest, principal : newPrinciple, balance : 0 }]
     newTotalPayment += payment
     
     this.setState({ 
@@ -197,10 +212,18 @@ class Calculator extends React.Component {
             <div className="heading-item">Amount</div>
             <div className="heading-item">Interest</div>
             <div className="heading-item">Principal</div>
+            <div className="heading-item">Balance</div>
           </div>
           <div className="payments">
             {payments.map((item, index) => (
-              <Payments key={index} date={item.date} payment={item.payment} interest={item.interest} principal={item.principal}/>
+              <Payments 
+                key={index} 
+                date={item.date} 
+                payment={item.payment} 
+                interest={item.interest} 
+                principal={item.principal}
+                balance={item.balance}
+              />
             ))}
           </div>
         </div> : ''}
