@@ -208,11 +208,8 @@ class Calculator extends React.Component {
         </div>
         {payments.length > 0 ? <div className="payment-list">
           <div className="payment-headings">
-            <div className="heading-item">Date</div>
-            <div className="heading-item">Amount</div>
-            <div className="heading-item">Interest</div>
-            <div className="heading-item">Principal</div>
-            <div className="heading-item">Balance</div>
+            {['Date', 'Amount', 'Interest', 'Principal', 'Balance'
+              ].map((val, index) => <div className="heading-item" key={index}>{val}</div>)}
           </div>
           <div className="payments">
             {payments.map((item, index) => (
